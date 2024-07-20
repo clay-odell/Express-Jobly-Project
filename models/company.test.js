@@ -127,6 +127,7 @@ describe("GET /:name", function () {
 
     expect(companies).toHaveLength(3);
     expect(companies[2].name).toEqual("C3");
+    expect(companies[2].handle).toEqual("c3");
   });
 });
 
