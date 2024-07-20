@@ -87,6 +87,16 @@ class Company {
     return company;
   }
 
+  static async findByName(name) {
+    if(!name) return await this.findAll();
+    const companies = await db.query(
+      `SELECT * FROM companies
+      WHERE LOWER(name) LIKE $1`,
+      [`%${name.toLowerCase()}%`]
+    );
+    return companies.rows;
+  }
+
   /** Update company data with `data`.
    *
    * This is a "partial update" --- it's fine if data doesn't contain all the
@@ -139,6 +149,15 @@ class Company {
     const company = result.rows[0];
 
     if (!company) throw new NotFoundError(`No company: ${handle}`);
+  }
+
+  static async findByName(name) {
+    const nameQuery = "%" + name + "%";
+    const result = await db.query(
+      `SELECT * FROM companies WHERE name ILIKE $1`,
+      [nameQuery]
+    );
+    return result.rows;
   }
 }
 
