@@ -86,17 +86,24 @@ class Company {
 
     return company;
   }
-
+/** Get company by name */
   static async findByName(name) {
     if(!name) return await this.findAll();
     const companies = await db.query(
-      `SELECT * FROM companies
+      `SELECT handle, name, description, num_employees, logo_url 
+      FROM companies
       WHERE LOWER(name) LIKE $1`,
       [`%${name.toLowerCase()}%`]
     );
     return companies.rows;
   }
-
+/** Get company by minEmployees */
+  static async minEmployees(num) {
+    const companies = await db.query(
+      `SELECT handle, name, description, num_employees, logo_url
+      FROM companies WHERE MIN(num_employees)`
+    )
+  }
   /** Update company data with `data`.
    *
    * This is a "partial update" --- it's fine if data doesn't contain all the
