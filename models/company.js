@@ -97,13 +97,28 @@ class Company {
     );
     return companies.rows;
   }
-/** Get company by minEmployees */
+/** Get companies by minEmployees */
   static async minEmployees(num) {
     const companies = await db.query(
       `SELECT handle, name, description, num_employees, logo_url
-      FROM companies WHERE MIN(num_employees)`
-    )
+      FROM companies 
+      WHERE num_employees >= $1
+      ORDER BY num_employees ASC`,
+      [num]
+    );
+    return companies.rows;
   }
+/** Get companies by maxEmployees  */
+  static async maxEmployees(num) {
+    const companies = await db.query(
+      `SELECT handle, name, description, num_employees, logo_url
+      FROM companies
+      WHERE num_employees <= $1
+      ORDER BY num_employees DESC`,
+      [num]
+    );
+    return companies.rows;
+  }  
   /** Update company data with `data`.
    *
    * This is a "partial update" --- it's fine if data doesn't contain all the

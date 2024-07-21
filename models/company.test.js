@@ -131,6 +131,29 @@ describe("GET /:name", function () {
   });
 });
 
+/************************** get by minEmployees */
+
+describe("GET /:minEmployees", function () {
+  test("gets companies by minEmployees", async function () {
+    const companies = await Company.minEmployees(2);
+
+    expect(companies).toHaveLength(2);
+    expect(companies[0].name).toEqual("C2");
+    expect(companies[1].num_employees).toEqual(3);
+  });
+});
+
+/*************************** get by maxEmployees */
+
+describe("GET /:maxEmployees", function () {
+  test("gets companies by maxEmployees", async function () {
+    const companies = await Company.maxEmployees(2);
+
+    expect(companies).toHaveLength(2);
+    expect(companies[1].name).toEqual("C1");
+    expect(companies[0].num_employees).toEqual(2);
+  })
+})
 /************************************** update */
 
 describe("update", function () {
