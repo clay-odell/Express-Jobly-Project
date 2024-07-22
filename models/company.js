@@ -174,6 +174,41 @@ class Company {
 
     if (!company) throw new NotFoundError(`No company: ${handle}`);
   }
+
+  static async getCompanies(filters) {
+    const validFields = ["name", "minEmployees", "maxEmployees"];
+    let query = `SELECT handle, name, description, num_employees AS "numEmployees", logo_url AS "logoUrl"
+                FROM companies`;
+    let where = [];
+    let values = [];
+
+    for (let field in filters) {
+      if (!validFields.includes(field)) {
+        throw new BadRequestError(`Invalid filter field: ${field}`);
+      }
+    }
+    const { name, minEmployees, maxEmployees } = filters;
+    if (minEmployees > maxEmployees) {
+      throw new BadRequestError("minEmployees cannont be greater than maxEmployees");
+    }
+    if (name) {
+      where.push("LOWER(name) LIKE $" + (where.length + 1));
+      values.push("%" + name.toLowerCase() + "%");
+    }
+    if (minEmployees) {
+      where.push("num_employees >= $" + (where.length + 1));
+      values.push(minEmployees);
+    }
+    if (maxEmployees) {
+      where.push("num_employees <= $" + (where.length + 1));
+      values.push(maxEmployees);
+    }
+    if (where.length > 0) {
+      query += " WHERE " + where.join(" AND ");
+    }
+    const result = await db.query(query, values);
+    return result.rows;
+  }
 }
 
 module.exports = Company;

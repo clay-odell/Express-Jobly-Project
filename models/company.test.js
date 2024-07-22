@@ -114,7 +114,7 @@ describe("get", function () {
 
 /************************ get by name */
 
-describe("GET /:name", function () {
+describe("GET by name", function () {
   test("gets a company by name/part of name and returns all matching companies", async function () {
     let companies = await Company.findByName("c");
     expect(companies).toHaveLength(3);
@@ -133,7 +133,7 @@ describe("GET /:name", function () {
 
 /************************** get by minEmployees */
 
-describe("GET /:minEmployees", function () {
+describe("GET / by minEmployees", function () {
   test("gets companies by minEmployees", async function () {
     const companies = await Company.minEmployees(2);
 
@@ -145,15 +145,80 @@ describe("GET /:minEmployees", function () {
 
 /*************************** get by maxEmployees */
 
-describe("GET /:maxEmployees", function () {
+describe("GET / by maxEmployees", function () {
   test("gets companies by maxEmployees", async function () {
     const companies = await Company.maxEmployees(2);
 
     expect(companies).toHaveLength(2);
     expect(companies[1].name).toEqual("C1");
     expect(companies[0].numEmployees).toEqual(2);
+  });
+});
+
+/************************** get by getCompanies(filter) */
+describe("GET / by getCompanies(filters)", () => {
+  test("works: no filters", async () => {
+    const companies = await Company.getCompanies({});
+    expect(companies).toEqual([
+      {
+        handle: "c1",
+        name: "C1",
+        description: "Desc1",
+        numEmployees: 1,
+        logoUrl: "http://c1.img",
+      },
+      {
+        handle: "c2",
+        name: "C2",
+        description: "Desc2",
+        numEmployees: 2,
+        logoUrl: "http://c2.img",
+      },
+      {
+        handle: "c3",
+        name: "C3",
+        description: "Desc3",
+        numEmployees: 3,
+        logoUrl: "http://c3.img",
+      },
+    ]);
+  });
+  test("works: filter by name and minEmployees", async () => {
+    const companies = await Company.getCompanies({
+      name: "C2",
+      minEmployees: 1,
+    });
+    expect(companies).toEqual([
+      {
+        handle: "c2",
+        name: "C2",
+        description: "Desc2",
+        numEmployees: 2,
+        logoUrl: "http://c2.img",
+      },
+    ]);
+  });
+  test("throws BadRequestError if minEmployees > maxEmployees", async () => {
+    try {
+      await Company.getCompanies({
+        minEmployees: 3, maxEmployees: 1
+      });
+      fail();
+    } catch (err) {
+      expect(err instanceof BadRequestError).toBeTruthy();
+    }
+  });
+  test("throws BadRequestError for invalid filter field", async () => {
+    try {
+      await Company.getCompanies({
+        invalidField: "test"
+      });
+      fail();
+    } catch(err) {
+      expect(err instanceof BadRequestError).toBeTruthy();
+    }
   })
-})
+});
 /************************************** update */
 
 describe("update", function () {
