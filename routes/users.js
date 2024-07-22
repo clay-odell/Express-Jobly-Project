@@ -48,7 +48,7 @@ router.post("/", ensureLoggedIn, async function (req, res, next) {
  *
  * Returns list of all users.
  *
- * Authorization required: login
+ * Authorization required: ensureLoggedIN and ensureAdmin
  **/
 
 router.get("/", authenticateJWT, ensureLoggedIn, ensureAdmin, async function (req, res, next) {
