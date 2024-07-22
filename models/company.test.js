@@ -139,7 +139,7 @@ describe("GET /:minEmployees", function () {
 
     expect(companies).toHaveLength(2);
     expect(companies[0].name).toEqual("C2");
-    expect(companies[1].num_employees).toEqual(3);
+    expect(companies[1].numEmployees).toEqual(3);
   });
 });
 
@@ -151,7 +151,7 @@ describe("GET /:maxEmployees", function () {
 
     expect(companies).toHaveLength(2);
     expect(companies[1].name).toEqual("C1");
-    expect(companies[0].num_employees).toEqual(2);
+    expect(companies[0].numEmployees).toEqual(2);
   })
 })
 /************************************** update */

@@ -48,11 +48,28 @@ router.post("/", ensureLoggedIn, async function (req, res, next) {
  * - nameLike (will find case-insensitive, partial matches)
  *
  * Authorization required: none
+ * -Added new code on get route
  */
 
 router.get("/", async function (req, res, next) {
   try {
-    const companies = await Company.findAll();
+    const { name, minEmployees, maxEmployees } = req.query;
+
+    if (minEmployees > maxEmployees) {
+      throw new ExpressError("Minimum Employees cannot be greater than max employees", 400);
+    }
+    let companies;
+    if (name) {
+      companies = await Company.findByName(name);
+    } else if (minEmployees) {
+      companies = await Company.minEmployees(minEmployees);
+    } else if (maxEmployees) {
+      companies = await Company.maxEmployees(maxEmployees);
+    } else {
+      companies = await Company.findAll();
+    }
+    
+    
     return res.json({ companies });
   } catch (err) {
     return next(err);
@@ -75,6 +92,8 @@ router.get("/:handle", async function (req, res, next) {
     return next(err);
   }
 });
+
+
 
 /** PATCH /[handle] { fld1, fld2, ... } => { company }
  *

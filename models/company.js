@@ -18,26 +18,21 @@ class Company {
 
   static async create({ handle, name, description, numEmployees, logoUrl }) {
     const duplicateCheck = await db.query(
-          `SELECT handle
+      `SELECT handle
            FROM companies
            WHERE handle = $1`,
-        [handle]);
+      [handle]
+    );
 
     if (duplicateCheck.rows[0])
       throw new BadRequestError(`Duplicate company: ${handle}`);
 
     const result = await db.query(
-          `INSERT INTO companies
+      `INSERT INTO companies
            (handle, name, description, num_employees, logo_url)
            VALUES ($1, $2, $3, $4, $5)
            RETURNING handle, name, description, num_employees AS "numEmployees", logo_url AS "logoUrl"`,
-        [
-          handle,
-          name,
-          description,
-          numEmployees,
-          logoUrl,
-        ],
+      [handle, name, description, numEmployees, logoUrl]
     );
     const company = result.rows[0];
 
@@ -51,13 +46,14 @@ class Company {
 
   static async findAll() {
     const companiesRes = await db.query(
-          `SELECT handle,
+      `SELECT handle,
                   name,
                   description,
                   num_employees AS "numEmployees",
                   logo_url AS "logoUrl"
            FROM companies
-           ORDER BY name`);
+           ORDER BY name`
+    );
     return companiesRes.rows;
   }
 
@@ -71,14 +67,15 @@ class Company {
 
   static async get(handle) {
     const companyRes = await db.query(
-          `SELECT handle,
+      `SELECT handle,
                   name,
                   description,
                   num_employees AS "numEmployees",
                   logo_url AS "logoUrl"
            FROM companies
            WHERE handle = $1`,
-        [handle]);
+      [handle]
+    );
 
     const company = companyRes.rows[0];
 
@@ -86,21 +83,27 @@ class Company {
 
     return company;
   }
-/** Get company by name */
+  /** Get company by name */
   static async findByName(name) {
-    if(!name) return await this.findAll();
     const companies = await db.query(
-      `SELECT handle, name, description, num_employees, logo_url 
+      `SELECT handle,
+              name,
+              description,
+              logo_url AS "logoUrl" 
       FROM companies
       WHERE LOWER(name) LIKE $1`,
       [`%${name.toLowerCase()}%`]
     );
     return companies.rows;
   }
-/** Get companies by minEmployees */
+  /** Get companies by minEmployees */
   static async minEmployees(num) {
     const companies = await db.query(
-      `SELECT handle, name, description, num_employees, logo_url
+      `SELECT handle,
+              name,
+              description,
+              num_employees AS "numEmployees",
+              logo_url AS "logoUrl"
       FROM companies 
       WHERE num_employees >= $1
       ORDER BY num_employees ASC`,
@@ -108,17 +111,17 @@ class Company {
     );
     return companies.rows;
   }
-/** Get companies by maxEmployees  */
+  /** Get companies by maxEmployees  */
   static async maxEmployees(num) {
     const companies = await db.query(
-      `SELECT handle, name, description, num_employees, logo_url
+      `SELECT handle, name, description, num_employees AS "numEmployees", logo_url AS "logoUrl"
       FROM companies
       WHERE num_employees <= $1
       ORDER BY num_employees DESC`,
       [num]
     );
     return companies.rows;
-  }  
+  }
   /** Update company data with `data`.
    *
    * This is a "partial update" --- it's fine if data doesn't contain all the
@@ -132,12 +135,10 @@ class Company {
    */
 
   static async update(handle, data) {
-    const { setCols, values } = sqlForPartialUpdate(
-        data,
-        {
-          numEmployees: "num_employees",
-          logoUrl: "logo_url",
-        });
+    const { setCols, values } = sqlForPartialUpdate(data, {
+      numEmployees: "num_employees",
+      logoUrl: "logo_url",
+    });
     const handleVarIdx = "$" + (values.length + 1);
 
     const querySql = `UPDATE companies 
@@ -163,25 +164,16 @@ class Company {
 
   static async remove(handle) {
     const result = await db.query(
-          `DELETE
+      `DELETE
            FROM companies
            WHERE handle = $1
            RETURNING handle`,
-        [handle]);
+      [handle]
+    );
     const company = result.rows[0];
 
     if (!company) throw new NotFoundError(`No company: ${handle}`);
   }
-
-  static async findByName(name) {
-    const nameQuery = "%" + name + "%";
-    const result = await db.query(
-      `SELECT * FROM companies WHERE name ILIKE $1`,
-      [nameQuery]
-    );
-    return result.rows;
-  }
 }
-
 
 module.exports = Company;
