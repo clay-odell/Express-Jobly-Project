@@ -40,12 +40,13 @@ function ensureLoggedIn(req, res, next) {
     return next(err);
   }
 }
-/** Middlewar to use when user must be admin, if not it raises Unathorized. */
+/** Middleware to use when user must be admin, if not it raises Unathorized. */
 function ensureAdmin(req, res, next) {
-  if (!req.user || !req.user.is_admin) {
-    throw new UnauthorizedError("Admin priveleges required");
+  if(res.locals.user && res.locals.user.isAdmin) {
+    next();
+  } else {
+    throw new UnauthorizedError("Admin privileges required.");
   }
-  return next();
 }
 
 module.exports = {

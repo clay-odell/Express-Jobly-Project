@@ -76,7 +76,7 @@ describe("ensureLoggedIn", function () {
 describe("ensureAdmin", () => {
   test("works", () => {
     expect.assertions(1);
-    const req = { user: { username: "test", is_admin: true } }; // Add user to req
+    const req = { user: { username: "test", is_admin: true } }; 
     const res = { locals: {} };
     const next = function (err) {
       expect(err).toBeFalsy();
