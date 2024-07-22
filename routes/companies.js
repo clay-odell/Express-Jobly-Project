@@ -52,14 +52,7 @@ router.post("/", ensureLoggedIn, async function (req, res, next) {
 
 router.get("/", async function (req, res, next) {
   try {
-    const validFields = ['name', 'minEmployees', 'maxEmployees'];
-    const filters = Object.keys(req.query);
-
-    const hasInvalidFields = filters.some((filter) => !validFields.includes(filter));
-
-    if (hasInvalidFields) {
-      throw new ExpressError('Invalid filter fields provided', 400);
-    }
+    
     const { name, minEmployees, maxEmployees } = req.query;
 
     if (minEmployees > maxEmployees) {
@@ -68,18 +61,7 @@ router.get("/", async function (req, res, next) {
         400
       );
     }
-    let companies;
-   
-    if (name) {
-      companies = await Company.findByName(name);
-    } else if (minEmployees) {
-      companies = await Company.minEmployees(minEmployees);
-    } else if (maxEmployees) {
-      companies = await Company.maxEmployees(maxEmployees);
-    } else {
-      companies = await Company.findAll();
-    }
-
+    const companies = await Company.getCompanies(req.query);
     return res.json({ companies });
   } catch (err) {
     return next(err);
