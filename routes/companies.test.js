@@ -19,7 +19,9 @@ beforeEach(commonBeforeEach);
 afterEach(commonAfterEach);
 afterAll(commonAfterAll);
 
-/************************************** POST /companies */
+/************************************** POST /companies
+ * UPDATED FOR ADMIN AUTHENTICATION
+ */
 
 describe("POST /companies", function () {
   const newCompany = {
@@ -61,6 +63,13 @@ describe("POST /companies", function () {
       })
       .set("authorization", `Bearer ${adminToken}`);
     expect(resp.statusCode).toEqual(400);
+  });
+  test("fail: unauthorized user", async () => {
+    const resp = await request(app)
+      .post("/companies")
+      .send(newCompany)
+      .set("authorization", `Bearer ${u1Token}`);
+    expect(resp.statusCode).toEqual(401);
   });
 });
 
@@ -182,9 +191,13 @@ describe("GET /companies", function () {
   });
 
   test("fails: minEmployees > maxEmployees", async () => {
-    const resp = await request(app).get("/companies?minEmployees=3&maxEmployees=1");
+    const resp = await request(app).get(
+      "/companies?minEmployees=3&maxEmployees=1"
+    );
     expect(resp.statusCode).toBe(400);
-    expect(resp.body.error.message).toEqual("Minimum Employees cannot be greater than max employees");
+    expect(resp.body.error.message).toEqual(
+      "Minimum Employees cannot be greater than max employees"
+    );
   });
 
   test("fails: test next() handler", async function () {
@@ -234,7 +247,9 @@ describe("GET /companies/:handle", function () {
   });
 });
 
-/************************************** PATCH /companies/:handle */
+/************************************** PATCH /companies/:handle
+ * UPDATED FOR ADMIN AUTHENTICATION
+ */
 
 describe("PATCH /companies/:handle", function () {
   test("works for users", async function () {
@@ -243,7 +258,7 @@ describe("PATCH /companies/:handle", function () {
       .send({
         name: "C1-new",
       })
-      .set("authorization", `Bearer ${u1Token}`);
+      .set("authorization", `Bearer ${adminToken}`);
     expect(resp.body).toEqual({
       company: {
         handle: "c1",
@@ -268,7 +283,7 @@ describe("PATCH /companies/:handle", function () {
       .send({
         name: "new nope",
       })
-      .set("authorization", `Bearer ${u1Token}`);
+      .set("authorization", `Bearer ${adminToken}`);
     expect(resp.statusCode).toEqual(404);
   });
 
@@ -278,7 +293,7 @@ describe("PATCH /companies/:handle", function () {
       .send({
         handle: "c1-new",
       })
-      .set("authorization", `Bearer ${u1Token}`);
+      .set("authorization", `Bearer ${adminToken}`);
     expect(resp.statusCode).toEqual(400);
   });
 
@@ -288,9 +303,19 @@ describe("PATCH /companies/:handle", function () {
       .send({
         logoUrl: "not-a-url",
       })
-      .set("authorization", `Bearer ${u1Token}`);
+      .set("authorization", `Bearer ${adminToken}`);
     expect(resp.statusCode).toEqual(400);
   });
+
+  test("fails: unauthorized user", async () => {
+    const resp = await request(app)
+    .patch('/companies/c1')
+    .send({
+      handle: "c1-new",
+    })
+    .set("authorization", `Bearer ${u1Token}`);
+    expect(resp.statusCode).toEqual(401);
+  })
 });
 
 /************************************** DELETE /companies/:handle */
@@ -299,7 +324,7 @@ describe("DELETE /companies/:handle", function () {
   test("works for users", async function () {
     const resp = await request(app)
       .delete(`/companies/c1`)
-      .set("authorization", `Bearer ${u1Token}`);
+      .set("authorization", `Bearer ${adminToken}`);
     expect(resp.body).toEqual({ deleted: "c1" });
   });
 
@@ -311,7 +336,13 @@ describe("DELETE /companies/:handle", function () {
   test("not found for no such company", async function () {
     const resp = await request(app)
       .delete(`/companies/nope`)
-      .set("authorization", `Bearer ${u1Token}`);
+      .set("authorization", `Bearer ${adminToken}`);
     expect(resp.statusCode).toEqual(404);
   });
+  test("fails: unauthorized user", async () => {
+    const resp = await request(app)
+    .delete('/companies/c1')
+    .set("authorization", `Bearer ${u1Token}`);
+    expect(resp.statusCode).toEqual(401);
+  })
 });
