@@ -177,8 +177,7 @@ class Company {
 
   static async getCompanies(filters) {
     const validFields = ["name", "minEmployees", "maxEmployees"];
-    let query = `SELECT handle, name, description, num_employees AS "numEmployees", logo_url AS "logoUrl"
-                FROM companies`;
+    let selectClause = `SELECT handle, name, description, logo_url AS "logoUrl"`;
     let where = [];
     let values = [];
 
@@ -188,8 +187,11 @@ class Company {
       }
     }
     const { name, minEmployees, maxEmployees } = filters;
+    if (minEmployees || maxEmployees) {
+      selectClause += `, num_employees AS "numEmployees"`;
+    }
     if (minEmployees > maxEmployees) {
-      throw new BadRequestError("minEmployees cannont be greater than maxEmployees");
+      throw new BadRequestError("minEmployees cannont be greater than maxEmployees", 400);
     }
     if (name) {
       where.push("LOWER(name) LIKE $" + (where.length + 1));
@@ -203,6 +205,7 @@ class Company {
       where.push("num_employees <= $" + (where.length + 1));
       values.push(maxEmployees);
     }
+    let query = `${selectClause} FROM companies`
     if (where.length > 0) {
       query += " WHERE " + where.join(" AND ");
     }

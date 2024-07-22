@@ -74,21 +74,21 @@ describe("GET /companies", function () {
           handle: "c1",
           name: "C1",
           description: "Desc1",
-          numEmployees: 1,
+
           logoUrl: "http://c1.img",
         },
         {
           handle: "c2",
           name: "C2",
           description: "Desc2",
-          numEmployees: 2,
+
           logoUrl: "http://c2.img",
         },
         {
           handle: "c3",
           name: "C3",
           description: "Desc3",
-          numEmployees: 3,
+
           logoUrl: "http://c3.img",
         },
       ],
@@ -136,24 +136,54 @@ describe("GET /companies", function () {
   test("gets by maxEmployees", async function () {
     const resp = await request(app).get("/companies?maxEmployees=2");
     expect(resp.statusCode).toBe(200);
-    expect(resp.body).toEqual({
-      companies: [
-        {
+    expect(resp.body.companies).toHaveLength(2);
+    expect(resp.body.companies).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          handle: "c1",
+          name: "C1",
+          description: "Desc1",
+          logoUrl: "http://c1.img",
+          numEmployees: 1,
+        }),
+        expect.objectContaining({
           handle: "c2",
           name: "C2",
           description: "Desc2",
-          numEmployees: 2,
           logoUrl: "http://c2.img",
-        },
+          numEmployees: 2,
+        }),
+      ])
+    );
+  });
+
+  test("gets by maxEmployees and name", async () => {
+    const resp = await request(app).get("/companies?maxEmployees=2&name=C");
+    expect(resp.statusCode).toBe(200);
+    expect(resp.body).toEqual({
+      companies: [
         {
           handle: "c1",
           name: "C1",
           description: "Desc1",
-          numEmployees: 1,
           logoUrl: "http://c1.img",
+          numEmployees: 1,
+        },
+        {
+          handle: "c2",
+          name: "C2",
+          description: "Desc2",
+          logoUrl: "http://c2.img",
+          numEmployees: 2,
         },
       ],
     });
+  });
+
+  test("fails: minEmployees > maxEmployees", async () => {
+    const resp = await request(app).get("/companies?minEmployees=3&maxEmployees=1");
+    expect(resp.statusCode).toBe(400);
+    expect(resp.body.error.message).toEqual("Minimum Employees cannot be greater than max employees");
   });
 
   test("fails: test next() handler", async function () {

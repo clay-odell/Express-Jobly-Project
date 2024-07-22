@@ -6,7 +6,7 @@ const jsonschema = require("jsonschema");
 const express = require("express");
 
 const { BadRequestError } = require("../expressError");
-const { ensureLoggedIn } = require("../middleware/auth");
+const { ensureLoggedIn, ensureAdmin } = require("../middleware/auth");
 const Company = require("../models/company");
 
 const companyNewSchema = require("../schemas/companyNew.json");
@@ -52,13 +52,11 @@ router.post("/", ensureLoggedIn, async function (req, res, next) {
 
 router.get("/", async function (req, res, next) {
   try {
-    
     const { name, minEmployees, maxEmployees } = req.query;
 
     if (minEmployees > maxEmployees) {
-      throw new ExpressError(
-        "Minimum Employees cannot be greater than max employees",
-        400
+      throw new BadRequestError(
+        "Minimum Employees cannot be greater than max employees"
       );
     }
     const companies = await Company.getCompanies(req.query);
