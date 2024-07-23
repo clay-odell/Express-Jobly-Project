@@ -234,7 +234,7 @@ describe("PATCH /users/:username", () => {
       .send({
         firstName: "Nope",
       })
-      .set("authorization", `Bearer ${u1Token}`);
+      .set("authorization", `Bearer ${adminToken}`);
     expect(resp.statusCode).toEqual(404);
   });
 

@@ -93,6 +93,9 @@ router.get("/:username", authenticateJWT, ensureLoggedIn, async function (req, r
 
 router.patch("/:username", ensureLoggedIn, async function (req, res, next) {
   try {
+    if(req.params.username !== res.locals.user.username && !res.locals.user.isAdmin) {
+      throw new UnauthorizedError();
+    }
     const validator = jsonschema.validate(req.body, userUpdateSchema);
     if (!validator.valid) {
       const errs = validator.errors.map(e => e.stack);
