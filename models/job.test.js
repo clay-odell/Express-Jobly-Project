@@ -8,8 +8,7 @@ const {
   commonBeforeEach,
   commonAfterEach,
   commonAfterAll,
-  testEngineerId,
-  testJobId,
+  
 } = require("./_testCommon");
 
 beforeAll(commonBeforeAll);
