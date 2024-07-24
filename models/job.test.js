@@ -8,7 +8,6 @@ const {
   commonBeforeEach,
   commonAfterEach,
   commonAfterAll,
-  
 } = require("./_testCommon");
 
 beforeAll(commonBeforeAll);
