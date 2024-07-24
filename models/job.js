@@ -38,7 +38,7 @@ class Job {
     return jobsRes.rows;
   }
   static async get(id) {
-    const result = db.query(
+    const result = await db.query(
       `SELECT title,
               salary,
               equity,
@@ -47,7 +47,7 @@ class Job {
         WHERE id = $1`,
       [id]
     );
-    const job = result.rows;
+    const job = result.rows[0];
     if (!job) throw new NotFoundError(`No job: ${id}`);
     return job;
   }
@@ -59,9 +59,13 @@ class Job {
         WHERE LOWER(title) LIKE $1`,
       [`%${title.toLowerCase()}%`]
     );
+    if (!jobsRes.rows.length) throw new NotFoundError(`No job: ${title} found`);
     return jobsRes.rows;
   }
   static async minSalary(num) {
+    if (typeof num !== "number" || num < 0) {
+      throw new BadRequestError(`Invalid input: ${num}`);
+    }
     const jobsRes = await db.query(
       `SELECT id, title, salary, equity, company_handle AS "companyHandle"
         FROM jobs
@@ -69,6 +73,8 @@ class Job {
         ORDER BY salary ASC`,
       [num]
     );
+    if (!jobsRes.rows.length)
+      throw new NotFoundError(`No job with minimum salary: ${num}`);
     return jobsRes.rows;
   }
   static async update(id, data) {

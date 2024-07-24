@@ -32,10 +32,12 @@ async function commonBeforeAll() {
       await bcrypt.hash("password2", BCRYPT_WORK_FACTOR),
     ]
   );
+  
 }
 
 async function commonBeforeEach() {
   await db.query("BEGIN");
+  await db.query("DELETE FROM jobs");
 }
 
 async function commonAfterEach() {
