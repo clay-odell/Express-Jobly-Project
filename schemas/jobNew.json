@@ -3,10 +3,6 @@
     "title": "jobs",
     "type": "object",
     "properties": {
-        "id": {
-            "type": "integer",
-            "minimum": 0
-        },
         "title": {
             "type": "string"
         },
@@ -19,16 +15,15 @@
             "minimum": 0,
             "maximum": 1.0
         },
-        "company_handle": {
+        "companyHandle": {
             "type": "string",
             "maxLength": 25
         }
     },
     "required": [
-        "id",
         "title",
         "salary",
         "equity",
-        "company_handle"
+        "companyHandle"
     ]
 }
