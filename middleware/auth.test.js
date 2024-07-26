@@ -74,13 +74,21 @@ describe("ensureLoggedIn", function () {
 });
 
 describe("ensureAdmin", () => {
-  test("works", () => {
-    expect.assertions(1);
-    const req = { user: { username: "test", is_admin: true } }; 
-    const res = { locals: {} };
-    const next = function (err) {
-      expect(err).toBeFalsy();
-    };
+  test("works when user is admin", () => {
+    const req = {};
+    const res = { locals: { user: { username: "test", isAdmin: true } } };
+    const next = jest.fn();
+
     ensureAdmin(req, res, next);
+    expect(next).toHaveBeenCalledWith();
   });
-});  
+
+  test("throws error when user is not admin", () => {
+    const req = { user: { username: "test", isAdmin: false } };
+    const res = { locals: {} };
+    const next = jest.fn();
+
+    // Check if ensureAdmin throws an UnauthorizedError
+    expect(() => ensureAdmin(req, res, next)).toThrow(UnauthorizedError);
+  });
+});

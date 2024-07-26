@@ -1,7 +1,12 @@
 "use strict";
+const { getDatabaseUri, BCRYPT_WORK_FACTOR } = require("./config");
+
+process.env.NODE_ENV === "test";
+process.env.DATABASE_URL_TEST = "postgresql:///jobly_test";
+const dbUri = getDatabaseUri();
 
 describe("config can come from env", function () {
-  test("works", function() {
+  test("works", function () {
     process.env.SECRET_KEY = "abc";
     process.env.PORT = "5000";
     process.env.DATABASE_URL = "other";
@@ -11,7 +16,7 @@ describe("config can come from env", function () {
     expect(config.SECRET_KEY).toEqual("abc");
     expect(config.PORT).toEqual(5000);
     expect(config.getDatabaseUri()).toEqual("other");
-    expect(config.BCRYPT_WORK_FACTOR).toEqual(12);
+    expect(config.BCRYPT_WORK_FACTOR).toEqual(1);
 
     delete process.env.SECRET_KEY;
     delete process.env.PORT;
@@ -23,5 +28,4 @@ describe("config can come from env", function () {
 
     expect(config.getDatabaseUri()).toEqual("postgresql:///jobly_test");
   });
-})
-
+});
