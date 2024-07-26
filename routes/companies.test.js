@@ -224,6 +224,7 @@ describe("GET /companies/:handle", function () {
         description: "Desc1",
         numEmployees: 1,
         logoUrl: "http://c1.img",
+        jobs: expect.any(Array),
       },
     });
   });
@@ -237,6 +238,15 @@ describe("GET /companies/:handle", function () {
         description: "Desc2",
         numEmployees: 2,
         logoUrl: "http://c2.img",
+        jobs: [
+          {
+            id: expect.any(Number),
+            title: "Test operator",
+            salary: 2000,
+            equity: "0.02",
+            companyHandle: "c2",
+          },
+        ],
       },
     });
   });
@@ -309,13 +319,13 @@ describe("PATCH /companies/:handle", function () {
 
   test("fails: unauthorized user", async () => {
     const resp = await request(app)
-    .patch('/companies/c1')
-    .send({
-      handle: "c1-new",
-    })
-    .set("authorization", `Bearer ${u1Token}`);
+      .patch("/companies/c1")
+      .send({
+        handle: "c1-new",
+      })
+      .set("authorization", `Bearer ${u1Token}`);
     expect(resp.statusCode).toEqual(401);
-  })
+  });
 });
 
 /************************************** DELETE /companies/:handle */
@@ -341,8 +351,8 @@ describe("DELETE /companies/:handle", function () {
   });
   test("fails: unauthorized user", async () => {
     const resp = await request(app)
-    .delete('/companies/c1')
-    .set("authorization", `Bearer ${u1Token}`);
+      .delete("/companies/c1")
+      .set("authorization", `Bearer ${u1Token}`);
     expect(resp.statusCode).toEqual(401);
-  })
+  });
 });

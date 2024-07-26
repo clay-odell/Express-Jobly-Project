@@ -132,7 +132,8 @@ class Job {
         WHERE company_handle = $1`,
       [companyHandle]
     );
-    if(result.rows.length === 0) throw new NotFoundError(`No jobs found for company: ${companyHandle}`);
+    if (result.rows.length === 0)
+      throw new NotFoundError(`No jobs found for company: ${companyHandle}`);
     return result.rows;
   }
 }
