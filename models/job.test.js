@@ -148,6 +148,33 @@ describe("get(id)", () => {
   });
 });
 
+/************************** getJobsByCompany(companyHandle) */
+describe("getJobsByCompany", () => {
+  test("works", async () => {
+    const job = await Job.findAll();
+    const jobId = job[0].id;
+
+    const result = await Job.getJobsByCompany("c1");
+    expect(result).toEqual([
+      {
+        id: jobId,
+        title: "Test job 1",
+        salary: 100,
+        equity: "0.09",
+        companyHandle: "c1",
+      },
+    ]);
+  });
+  test("fails for invalid companyHandle", async () => {
+    expect.assertions(1);
+    try {
+      await Job.getJobsByCompany("invalid-handle");
+    } catch (err) {
+      expect(err instanceof NotFoundError).toBeTruthy();
+    }
+  });
+});
+
 /************************************** update */
 describe("update", () => {
   test("works", async () => {

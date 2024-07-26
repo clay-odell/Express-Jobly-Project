@@ -55,11 +55,11 @@ class Job {
   static async update(id, data) {
     const validKeys = new Set(["title", "salary", "equity"]);
     for (let key in data) {
-        if(!validKeys.has(key)) {
-            throw new BadRequestError(`Invalid key: ${key}`);
-        }
+      if (!validKeys.has(key)) {
+        throw new BadRequestError(`Invalid key: ${key}`);
+      }
     }
-    
+
     const { setCols, values } = sqlForPartialUpdate(data, {
       title: "title",
       salary: "salary",
@@ -117,13 +117,22 @@ class Job {
     }
     if (hasEquity) {
       where.push("equity > 0");
-      
     }
     let query = `${selectClause} FROM jobs`;
     if (where.length > 0) {
       query += " WHERE " + where.join(" AND ");
     }
     const result = await db.query(query, values);
+    return result.rows;
+  }
+  static async getJobsByCompany(companyHandle) {
+    const result = await db.query(
+      `SELECT id, title, salary, equity, company_handle AS "companyHandle"
+        FROM jobs
+        WHERE company_handle = $1`,
+      [companyHandle]
+    );
+    if(result.rows.length === 0) throw new NotFoundError(`No jobs found for company: ${companyHandle}`);
     return result.rows;
   }
 }
