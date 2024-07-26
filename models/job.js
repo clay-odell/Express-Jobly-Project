@@ -52,31 +52,6 @@ class Job {
     return job;
   }
 
-  static async findByTitle(title) {
-    const jobsRes = await db.query(
-      `SELECT id, title, salary, equity, company_handle AS "companyHandle"
-        FROM jobs
-        WHERE LOWER(title) LIKE $1`,
-      [`%${title.toLowerCase()}%`]
-    );
-    if (!jobsRes.rows.length) throw new NotFoundError(`No job: ${title} found`);
-    return jobsRes.rows;
-  }
-  static async minSalary(num) {
-    if (typeof num !== "number" || num < 0) {
-      throw new BadRequestError(`Invalid input: ${num}`);
-    }
-    const jobsRes = await db.query(
-      `SELECT id, title, salary, equity, company_handle AS "companyHandle"
-        FROM jobs
-        WHERE salary >= $1
-        ORDER BY salary ASC`,
-      [num]
-    );
-    if (!jobsRes.rows.length)
-      throw new NotFoundError(`No job with minimum salary: ${num}`);
-    return jobsRes.rows;
-  }
   static async update(id, data) {
     const { setCols, values } = sqlForPartialUpdate(data, {
       title: "title",
@@ -113,6 +88,35 @@ class Job {
 
     if (!job) throw new NotFoundError(`No job: ${id}`);
   }
-}
+  static async getJobs(filters) {
+    const validFields = ["title", "minSalary", "hasEquity"];
+    const selectClause = `SELECT id, title, salary, equity, company_handle`;
+    let where = [];
+    let values = [];
 
+    for (let field in filters) {
+      if (!validFields.includes(field))
+        throw new BadRequestError(`Invalid filter field: ${field}`);
+    }
+    const { title, minSalary, hasEquity } = filters;
+    if (title) {
+      where.push("LOWER(title) LIKE $" + (where.length + 1));
+      values.push("%" + title.toLowerCase() + "%");
+    }
+    if (minSalary) {
+      where.push("salary >= $" + (where.length + 1));
+      values.push(minSalary);
+    }
+    if (hasEquity) {
+      where.push("equity > 0");
+      values.push(hasEquity);
+    }
+    let query = `${selectClause} FROM jobs`;
+    if (where.length > 0) {
+      query += " WHERE " + where.join(" AND ");
+    }
+    const result = await db.query(query, values);
+    return result.rows;
+  }
+}
 module.exports = Job;
