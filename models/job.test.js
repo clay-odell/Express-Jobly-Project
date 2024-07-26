@@ -56,32 +56,76 @@ describe("create", () => {
 /************************************** findAll */
 describe("findAll", () => {
   test("works", async () => {
-    const jobs = await db.query(
-      `INSERT INTO jobs (title, salary, equity, company_handle)
-           VALUES ('Test engineer', 100, '0.10', 'c1'),
-                  ('Test job', 200, '0.20', 'c2')
-           RETURNING id, title, salary, equity, company_handle AS "companyHandle"`
-    );
-    const testEngineerId = jobs.rows[0].id;
-    const testJobId = jobs.rows[1].id;
+    const jobs = await Job.findAll();
 
-    const result = await Job.findAll();
-    expect(result).toEqual([
+    const firstJobId = jobs[0].id;
+    const secondJobId = jobs[1].id;
+    const thirdJobId = jobs[2].id;
+    expect(jobs).toEqual([
       {
-        id: testEngineerId,
-        title: "Test engineer",
+        id: firstJobId,
+        title: "Test job 1",
         salary: 100,
-        equity: "0.10",
+        equity: "0.09",
         companyHandle: "c1",
       },
       {
-        id: testJobId,
-        title: "Test job",
+        id: secondJobId,
+        title: "Test job 2",
         salary: 200,
-        equity: "0.20",
+        equity: "0.08",
         companyHandle: "c2",
       },
+      {
+        id: thirdJobId,
+        title: "Test job 3",
+        salary: 300,
+        equity: "0",
+        companyHandle: "c3",
+      },
     ]);
+  });
+});
+/*********************************** getJobs(filters) */
+describe("getJobs", () => {
+  beforeEach(async () => {
+    await db.query("DELETE FROM jobs");
+    await db.query(`INSERT INTO jobs (id, title, salary, equity, company_handle) 
+                      VALUES (1, 'Engineer', 50000, 0.1, 'c1'),
+                             (2, 'Manager', 60000, 0.2, 'c2')`);
+  });
+
+  test("gets all jobs without filters", async () => {
+    const jobs = await Job.getJobs({});
+    expect(jobs).toHaveLength(2);
+    expect(jobs[0]).toHaveProperty("id");
+    expect(jobs[0]).toHaveProperty("title");
+    expect(jobs[0]).toHaveProperty("salary");
+    expect(jobs[0]).toHaveProperty("equity");
+    expect(jobs[0]).toHaveProperty("company_handle");
+  });
+
+  test("filters by title", async () => {
+    const jobs = await Job.getJobs({ title: "Engineer" });
+    expect(jobs).toHaveLength(1);
+    expect(jobs[0].title).toEqual("Engineer");
+  });
+
+  test("filters by minSalary", async () => {
+    const jobs = await Job.getJobs({ minSalary: 55000 });
+    expect(jobs).toHaveLength(1);
+    expect(jobs[0].title).toEqual("Manager");
+  });
+
+  test("filters by hasEquity", async () => {
+    const jobs = await Job.getJobs({ hasEquity: true });
+    expect(jobs).toHaveLength(2);
+  });
+
+  test("throws BadRequestError for invalid filter field", async () => {
+    await expect(Job.getJobs({ invalidField: "invalid" })).rejects.toThrow(
+      "Invalid filter field: invalidField"
+    );
   });
 });
 /************************************** get(id) */
@@ -104,88 +148,60 @@ describe("get(id)", () => {
   });
 });
 
-/************************************** findByTitle */
-describe("findByTitle", () => {
-  beforeEach(async () => {
-    await db.query(
+/************************************** update */
+describe("update", () => {
+  test("works", async () => {
+    const job = await db.query(
       `INSERT INTO jobs (title, salary, equity, company_handle)
-          VALUES ('Testing engineer', 100, 0.100, 'c1'),
-                 ('Test scientist', 200, 0.200, 'c2'),
-                 ('Test operator', 300, 0, 'c3')
-          RETURNING id`
+        VALUES ('Another test job', 400, 0.07, 'c1')
+        RETURNING id, title, salary, equity, company_handle AS "companyHandle"`
     );
+    const jobId = job.rows[0].id;
+    const updateData = {
+      title: "Updated test job",
+      salary: 500,
+      equity: 0,
+    };
+    const result = await Job.update(jobId, updateData);
+    expect(result).toEqual({
+      id: jobId,
+      title: "Updated test job",
+      salary: 500,
+      equity: "0",
+      companyHandle: "c1",
+    });
   });
-
-  test("works: engineer", async () => {
-    const result = await Job.findByTitle("eng");
-    expect(result[0].title).toEqual("Testing engineer");
-  });
-
-  test("works: scientist", async () => {
-    const result = await Job.findByTitle("sci");
-    expect(result[0].title).toEqual("Test scientist");
-  });
-
-  test("works: operator", async () => {
-    const result = await Job.findByTitle("op");
-    expect(result[0].title).toEqual("Test operator");
-  });
-
-  test("no match", async () => {
-    await expect(Job.findByTitle("no match")).rejects.toThrow(NotFoundError);
-  });
-
-  test("case insensitive", async () => {
+  test("fails for invalid key", async () => {
+    const job = await db.query(
+      `INSERT INTO jobs (title, salary, equity, company_handle)
+        VALUES ('Another test job', 400, 0.07, 'c1')
+        RETURNING id, title, salary, equity, company_handle AS "companyHandle"`
+    );
+    const jobId = job.rows[0].id;
+    const updateData = {
+      name: "Gonna fail",
+    };
     try {
-      const result = await Job.findByTitle("TEST ENGINEER");
-      expect(result[0].title).toEqual("Testing engineer");
-    } catch (error) {
-      console.error(error);
+      await Job.update(jobId, updateData);
+    } catch (err) {
+      expect(err instanceof BadRequestError).toBeTruthy();
+      expect(err.message).toEqual(`Invalid key: name`);
     }
   });
 });
+/************************************** remove */
+describe("remove by id", () => {
+  test("ok", async () => {
+    const jobs = await Job.findAll();
+    const jobId = jobs[0].id;
+    const result = await Job.remove(jobId);
+    expect(result).toEqual({ id: jobId });
 
-/************************************** minSalary */
-describe("minSalary", () => {
-  beforeEach(async () => {
-    await db.query(
-      `INSERT INTO jobs (title, salary, equity, company_handle)
-            VALUES ('Testing engineer', 100, 0.100, 'c1'),
-                   ('Test scientist', 200, 0.200, 'c2'),
-                   ('Test operator', 300, 0, 'c3')
-            RETURNING id`
-    );
-  });
-  test("works: 200", async () => {
-    const results = await Job.minSalary(200);
-    expect(results).toEqual([
-      {
-        id: results[0].id,
-        salary: 200,
-        equity: "0.200",
-        companyHandle: "c2",
-        title: "Test scientist",
-      },
-      {
-        id: results[1].id,
-        salary: 300,
-        title: "Test operator",
-        equity: "0",
-        companyHandle: "c3",
-      },
-    ]);
-  });
-  test("no match", async () => {
-    await expect(Job.minSalary(500)).rejects.toThrow(NotFoundError);
-  });
-  test("negative interger", async () => {
-    await expect(Job.minSalary(-200)).rejects.toThrow(BadRequestError);
-  });
-  test("string", async () => {
-    await expect(Job.minSalary("200")).rejects.toThrow(BadRequestError);
+    // Verify the job has been removed
+    try {
+      await Job.get(jobId);
+    } catch (err) {
+      expect(err instanceof NotFoundError).toBeTruthy();
+    }
   });
 });
-
-/************************************** update */
-
-/************************************** remove */

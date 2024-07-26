@@ -53,6 +53,13 @@ class Job {
   }
 
   static async update(id, data) {
+    const validKeys = new Set(["title", "salary", "equity"]);
+    for (let key in data) {
+        if(!validKeys.has(key)) {
+            throw new BadRequestError(`Invalid key: ${key}`);
+        }
+    }
+    
     const { setCols, values } = sqlForPartialUpdate(data, {
       title: "title",
       salary: "salary",
@@ -87,6 +94,7 @@ class Job {
     const job = result.rows[0];
 
     if (!job) throw new NotFoundError(`No job: ${id}`);
+    return job;
   }
   static async getJobs(filters) {
     const validFields = ["title", "minSalary", "hasEquity"];
@@ -109,7 +117,7 @@ class Job {
     }
     if (hasEquity) {
       where.push("equity > 0");
-      values.push(hasEquity);
+      
     }
     let query = `${selectClause} FROM jobs`;
     if (where.length > 0) {
