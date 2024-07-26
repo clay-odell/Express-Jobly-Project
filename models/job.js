@@ -48,7 +48,7 @@ class Job {
       [id]
     );
     const job = result.rows[0];
-    if (!job) throw new NotFoundError(`No job: ${id}`);
+    if (!job) throw new NotFoundError(`No job with id: ${id}`);
     return job;
   }
 
@@ -92,7 +92,7 @@ class Job {
                                 title,
                                 salary,
                                 equity,
-                                company_handle AS "companyHandle`;
+                                company_handle AS "companyHandle"`;
 
     const result = await db.query(querySql, [...values, id]);
 

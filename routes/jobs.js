@@ -51,6 +51,7 @@ router.get("/", async (req, res, next) => {
 router.get("/:id", async (req, res, next) => {
   try {
     const job = await Job.get(req.params.id);
+    
     return res.status(200).json({ job });
   } catch (err) {
     return next(err);
@@ -69,7 +70,7 @@ router.patch(
         const errs = validator.errors.map((e) => e.stack);
         throw new BadRequestError(errs);
       }
-      const job = Job.update(req.params.id, req.body);
+      const job = await Job.update(req.params.id, req.body);
       return res.json({ job });
     } catch (err) {
       return next(err);
