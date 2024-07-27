@@ -5,6 +5,7 @@ const request = require("supertest");
 const db = require("../db.js");
 const app = require("../app");
 const User = require("../models/user");
+const Job = require("../models/job.js");
 
 const {
   commonBeforeAll,
@@ -288,6 +289,51 @@ describe("DELETE /users/:username", function () {
     const resp = await request(app)
       .delete(`/users/nope`)
       .set("authorization", `Bearer ${adminToken}`);
+    expect(resp.statusCode).toEqual(404);
+  });
+});
+
+/******************************* POST /users/:username/jobs/:id */
+describe("POST /users/:username/jobs/:id", () => {
+  test("works for same user", async () => {
+    const job = await Job.findAll();
+    const jobId = job[0].id;
+    console.log(jobId);
+    const resp = await request(app)
+      .post(`/users/u1/jobs/${jobId}`)
+      .set("authorization", `Bearer ${u1Token}`);
+    expect(resp.statusCode).toEqual(200);
+    expect(resp.body).toEqual({
+      applied: String(jobId),
+    });
+  });
+  test("unathorized for different user", async () => {
+    const job = await Job.findAll();
+    const jobId = job[0].id;
+    const resp = await request(app)
+      .post(`/users/u2/jobs/${jobId}`)
+      .set("authorizaton", `Bearer ${u1Token}`);
+    expect(resp.statusCode).toEqual(401);
+  });
+  test("unauthorized for anon", async () => {
+    const job = await Job.findAll();
+    const jobId = job[0].id;
+    const resp = await request(app).post(`/users/u1/jobs/${jobId}`);
+    expect(resp.statusCode).toEqual(401);
+  });
+  test("not found if no such user", async () => {
+    const job = await Job.findAll();
+    const jobId = job[0].id;
+    const resp = await request(app)
+      .post(`/users/nope/jobs/${jobId}`)
+      .set("authorization", `Bearer ${adminToken}`);
+    expect(resp.statusCode).toEqual(404);
+  });
+  test("not found if no such job", async () => {
+    const resp = await request(app)
+      .post("/users/u1/jobs/0")
+      .set("authorization", `Bearer ${u1Token}`);
+      console.log(resp);
     expect(resp.statusCode).toEqual(404);
   });
 });

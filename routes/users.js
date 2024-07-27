@@ -127,5 +127,21 @@ router.delete("/:username", authenticateJWT, ensureLoggedIn, async function (req
   }
 });
 
+router.post("/:username/jobs/:id", authenticateJWT, ensureLoggedIn, async (req, res, next) => {
+  try {
+    const username = req.params.username;
+    const jobId = req.params.id;
+    if(req.params.username !== res.locals.user.username && !res.locals.user.isAdmin) {
+      throw new UnauthorizedError();
+    }
+    const result = await User.apply(username, jobId);
+    
+    return res.json({applied: jobId});
+
+  } catch (err) {
+    return next(err);
+  }
+});
+
 
 module.exports = router;
