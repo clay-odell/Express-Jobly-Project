@@ -271,7 +271,7 @@ describe("POST /users/:username/jobs/:id", () => {
   test("works for same user", async () => {
     const job = await Job.findAll();
     const jobId = job[0].id;
-    console.log(jobId);
+
     const resp = await request(app)
       .post(`/users/u1/jobs/${jobId}`)
       .set("authorization", `Bearer ${u1Token}`);
@@ -306,7 +306,7 @@ describe("POST /users/:username/jobs/:id", () => {
     const resp = await request(app)
       .post("/users/u1/jobs/0")
       .set("authorization", `Bearer ${u1Token}`);
-    console.log(resp);
+
     expect(resp.statusCode).toEqual(404);
   });
 });

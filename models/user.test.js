@@ -214,7 +214,7 @@ describe("update", function () {
 describe("getAll", () => {
   test("ok", async () => {
     const users = await User.getAll();
-    console.log(users[1]);
+    
     expect(users[1]).toEqual(
       {
         username: "u1",
