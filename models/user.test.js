@@ -210,13 +210,30 @@ describe("update", function () {
   });
 });
 
+/******************************getAll */
+describe("getAll", () => {
+  test("ok", async () => {
+    const users = await User.getAll();
+    console.log(users[1]);
+    expect(users[1]).toEqual(
+      {
+        username: "u1",
+        firstName: "U1F",
+        lastName: "U1L",
+        email: "u1@email.com",
+        isAdmin: false,
+        jobs: [null],
+      },
+    );
+  });
+});
+
 /************************************** remove */
 
 describe("remove", function () {
   test("works", async function () {
     await User.remove("u1");
-    const res = await db.query(
-        "SELECT * FROM users WHERE username='u1'");
+    const res = await db.query("SELECT * FROM users WHERE username='u1'");
     expect(res.rows.length).toEqual(0);
   });
 
@@ -234,7 +251,7 @@ describe("remove", function () {
 describe("apply", function () {
   test("works", async () => {
     const jobRes = await Job.findAll();
-    
+
     const jobId = jobRes[0].id;
     await User.apply("u1", jobId);
     const res = await db.query(
@@ -260,3 +277,4 @@ describe("apply", function () {
     }
   });
 });
+

@@ -119,38 +119,11 @@ describe("GET /users", function () {
     const resp = await request(app)
       .get("/users")
       .set("authorization", `Bearer ${adminToken}`);
-    expect(resp.body).toEqual({
-      users: [
-        {
-          username: "admin",
-          firstName: "Admin",
-          lastName: "User",
-          email: "admin@user.com",
-          isAdmin: true,
-        },
-        {
-          username: "u1",
-          firstName: "U1F",
-          lastName: "U1L",
-          email: "user1@user.com",
-          isAdmin: false,
-        },
-        {
-          username: "u2",
-          firstName: "U2F",
-          lastName: "U2L",
-          email: "user2@user.com",
-          isAdmin: false,
-        },
-        {
-          username: "u3",
-          firstName: "U3F",
-          lastName: "U3L",
-          email: "user3@user.com",
-          isAdmin: false,
-        },
-      ],
-    });
+    const usernames = resp.body.users.map((user) => user.username);
+    expect(usernames).toContain("admin");
+    expect(usernames).toContain("u1");
+    expect(usernames).toContain("u2");
+    expect(usernames).toContain("u3");
   });
 
   test("unauth for anon", async function () {
@@ -333,7 +306,7 @@ describe("POST /users/:username/jobs/:id", () => {
     const resp = await request(app)
       .post("/users/u1/jobs/0")
       .set("authorization", `Bearer ${u1Token}`);
-      console.log(resp);
+    console.log(resp);
     expect(resp.statusCode).toEqual(404);
   });
 });

@@ -240,6 +240,22 @@ class User {
     );
     return result.rows;
   }
+  static async getAll() {
+    const result = await db.query(
+      `SELECT u.username,
+              u.first_name AS "firstName",
+              u.last_name AS "lastName",
+              u.email,
+              u.is_admin AS "isAdmin",
+              json_agg(a.job_id) AS jobs
+       FROM users AS u
+       LEFT JOIN applications AS a
+       ON u.username = a.username
+       GROUP BY u.username`
+    );
+    
+    return result.rows;
+  }
 }
 
 module.exports = User;

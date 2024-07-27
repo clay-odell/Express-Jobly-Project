@@ -53,7 +53,7 @@ router.post("/", authenticateJWT, ensureLoggedIn, ensureAdmin, async function (r
 
 router.get("/", authenticateJWT, ensureLoggedIn, ensureAdmin, async function (req, res, next) {
   try {
-    const users = await User.findAll();
+    const users = await User.getAll();
     return res.json({ users });
   } catch (err) {
     return next(err);
@@ -142,6 +142,7 @@ router.post("/:username/jobs/:id", authenticateJWT, ensureLoggedIn, async (req, 
     return next(err);
   }
 });
+
 
 
 module.exports = router;
