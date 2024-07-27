@@ -174,7 +174,7 @@ class Company {
 
     if (!company) throw new NotFoundError(`No company: ${handle}`);
   }
-
+/** Filters added for commpanies model to allow multiple filters to be used to search for matching user criteria */
   static async getCompanies(filters) {
     const validFields = ["name", "minEmployees", "maxEmployees"];
     let selectClause = `SELECT handle, name, description, logo_url AS "logoUrl"`;
